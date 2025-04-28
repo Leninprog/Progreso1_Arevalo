@@ -1,83 +1,111 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Progreso1_ArevaloLenin.Models;
+using Progreso1_Arevalo.Data;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace Progreso1_Arevalo.Controllers
 {
     public class ClienteController : Controller
     {
+        private readonly ApplicationDbContext _context;
+
         // GET: ClienteController
+        public ClienteController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
         public ActionResult Index()
         {
-            return View();
+            var clientes = _context.Clientes.Include(item => item.PlanRecompensa).ToList();
+            return View("List", clientes);
         }
 
         // GET: ClienteController/Details/5
-        public ActionResult Details(int id)
+        public IActionResult Details(int? id)
         {
-            return View();
+            if (id == null) return NotFound();
+
+            var cliente = _context.Clientes
+                .Include(m => m.Reservas)
+                .FirstOrDefault(m => m.Id == id);
+
+            if (cliente == null) return NotFound();
+
+            return View(cliente);
         }
 
         // GET: ClienteController/Create
-        public ActionResult Create()
+        public IActionResult Create()
         {
+            ViewBag.Usuarios = _context.Clientes.ToList();
             return View();
         }
 
         // POST: ClienteController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public IActionResult Create(Cliente cliente)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            _context.Add(cliente);
+            _context.SaveChanges();
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: ClienteController/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            if (id == null) return NotFound();
+
+            var cliente = _context.Clientes.Find(id);
+            if (cliente == null) return NotFound();
+
+            ViewBag.Reservas = _context.Reservas.ToList();
+            return View(cliente);
         }
 
         // POST: ClienteController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public IActionResult Edit(int id, Cliente cliente)
         {
-            try
+            if (id != cliente.Id) return NotFound();
+
+            if (ModelState.IsValid)
             {
+                _context.Update(cliente);
+                _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
-            catch
-            {
-                return View();
-            }
+
+            ViewBag.Reservas = _context.Reservas.ToList();
+            return View(cliente);
         }
 
         // GET: ClienteController/Delete/5
-        public ActionResult Delete(int id)
+        public IActionResult Delete(int? id)
         {
-            return View();
+            if (id == null) return NotFound();
+
+            var cliente = _context.Clientes
+                .Include(m => m.Reservas)
+                .FirstOrDefault(m => m.Id == id);
+
+            if (cliente == null) return NotFound();
+
+            return View(cliente);
         }
 
         // POST: ClienteController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public IActionResult DeleteConfirmed(int id)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            var cliente = _context.Clientes.Find(id);
+            _context.Clientes.Remove(cliente);
+            _context.SaveChanges();
+            return RedirectToAction(nameof(Index));
         }
     }
 }
