@@ -1,21 +1,20 @@
-﻿using System.Linq;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Progreso1_ArevaloLenin.Models;
-using Progreso1_Arevalo.Data;
 using Microsoft.EntityFrameworkCore;
+using Progreso1_Arevalo.Data;
 
-
-namespace Progreso1_Arevalo.Controllers
+namespace Progreso1_ArevaloLenin.Controllers
 {
     public class ClienteController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        // GET: ClienteController
         public ClienteController(ApplicationDbContext context)
         {
             _context = context;
         }
+
+        // GET: ClienteController
         public ActionResult Index()
         {
             var clientes = _context.Clientes.Include(item => item.PlanRecompensa).ToList();
@@ -39,26 +38,25 @@ namespace Progreso1_Arevalo.Controllers
         // GET: ClienteController/Create
         public IActionResult Create()
         {
-            ViewBag.Usuarios = _context.Clientes.ToList();
+            ViewBag.PlanesRecompensa = _context.PlanRecompensas.ToList();
             return View();
         }
 
         // POST: ClienteController/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [ValidateAntiForgeryToken] 
         public IActionResult Create(Cliente cliente)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(cliente);
                 _context.SaveChanges();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index));  
             }
 
-            ViewBag.Usuarios = _context.Clientes.ToList();
-            return View(cliente);
+            ViewBag.PlanesRecompensa = _context.PlanRecompensas.ToList();
+            return View(cliente);  
         }
-
 
         // GET: ClienteController/Edit/5
         public ActionResult Edit(int id)
@@ -68,7 +66,7 @@ namespace Progreso1_Arevalo.Controllers
             var cliente = _context.Clientes.Find(id);
             if (cliente == null) return NotFound();
 
-            ViewBag.Reservas = _context.Reservas.ToList();
+            ViewBag.PlanesRecompensa = _context.PlanRecompensas.ToList();
             return View(cliente);
         }
 
@@ -83,10 +81,10 @@ namespace Progreso1_Arevalo.Controllers
             {
                 _context.Update(cliente);
                 _context.SaveChanges();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index));  
             }
 
-            ViewBag.Reservas = _context.Reservas.ToList();
+            ViewBag.PlanesRecompensa = _context.PlanRecompensas.ToList();
             return View(cliente);
         }
 
@@ -113,7 +111,8 @@ namespace Progreso1_Arevalo.Controllers
             if (cliente == null) return NotFound();
             _context.Clientes.Remove(cliente);
             _context.SaveChanges();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index));  
         }
     }
 }
+
