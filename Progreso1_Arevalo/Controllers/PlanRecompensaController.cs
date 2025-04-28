@@ -1,83 +1,105 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Progreso1_Arevalo.Data;
+using Progreso1_ArevaloLenin.Models;
 
 namespace Progreso1_Arevalo.Controllers
 {
     public class PlanRecompensaController : Controller
     {
-        // GET: PlanRecompensaController
-        public ActionResult Index()
+        private readonly ApplicationDbContext _context;
+
+        public PlanRecompensaController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        // GET: PlanRecompensa
+        public IActionResult Index()
+        {
+            return View(_context.PlanRecompensas.ToList());
+        }
+
+        // GET: PlanRecompensa/Details/5
+        public IActionResult Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var plan = _context.PlanRecompensas.FirstOrDefault(p => p.Id == id);
+            if (plan == null) return NotFound();
+
+            return View(plan);
+        }
+
+        // GET: PlanRecompensa/Create
+        public IActionResult Create()
         {
             return View();
         }
 
-        // GET: PlanRecompensaController/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
-
-        // GET: PlanRecompensaController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: PlanRecompensaController/Create
+        // POST: PlanRecompensa/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public IActionResult Create(PlanRecompensa plan)
         {
-            try
+            if (ModelState.IsValid)
             {
+                _context.PlanRecompensas.Add(plan);
+                _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
-            catch
-            {
-                return View();
-            }
+
+            return View(plan);
         }
 
-        // GET: PlanRecompensaController/Edit/5
-        public ActionResult Edit(int id)
+        // GET: PlanRecompensa/Edit/5
+        public IActionResult Edit(int? id)
         {
-            return View();
+            if (id == null) return NotFound();
+
+            var plan = _context.PlanRecompensas.Find(id);
+            if (plan == null) return NotFound();
+
+            return View(plan);
         }
 
-        // POST: PlanRecompensaController/Edit/5
+        // POST: PlanRecompensa/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public IActionResult Edit(int id, PlanRecompensa plan)
         {
-            try
+            if (id != plan.Id) return NotFound();
+
+            if (ModelState.IsValid)
             {
+                _context.Update(plan);
+                _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
-            catch
-            {
-                return View();
-            }
+
+            return View(plan);
         }
 
-        // GET: PlanRecompensaController/Delete/5
-        public ActionResult Delete(int id)
+        // GET: PlanRecompensa/Delete/5
+        public IActionResult Delete(int? id)
         {
-            return View();
+            if (id == null) return NotFound();
+
+            var plan = _context.PlanRecompensas.FirstOrDefault(p => p.Id == id);
+            if (plan == null) return NotFound();
+
+            return View(plan);
         }
 
-        // POST: PlanRecompensaController/Delete/5
-        [HttpPost]
+        // POST: PlanRecompensa/Delete/5
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public IActionResult DeleteConfirmed(int id)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            var plan = _context.PlanRecompensas.Find(id);
+            _context.PlanRecompensas.Remove(plan);
+            _context.SaveChanges();
+            return RedirectToAction(nameof(Index));
         }
     }
 }

@@ -48,10 +48,17 @@ namespace Progreso1_Arevalo.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Cliente cliente)
         {
-            _context.Add(cliente);
-            _context.SaveChanges();
-            return RedirectToAction(nameof(Index));
+            if (ModelState.IsValid)
+            {
+                _context.Add(cliente);
+                _context.SaveChanges();
+                return RedirectToAction(nameof(Index));
+            }
+
+            ViewBag.Usuarios = _context.Clientes.ToList();
+            return View(cliente);
         }
+
 
         // GET: ClienteController/Edit/5
         public ActionResult Edit(int id)
@@ -103,6 +110,7 @@ namespace Progreso1_Arevalo.Controllers
         public IActionResult DeleteConfirmed(int id)
         {
             var cliente = _context.Clientes.Find(id);
+            if (cliente == null) return NotFound();
             _context.Clientes.Remove(cliente);
             _context.SaveChanges();
             return RedirectToAction(nameof(Index));

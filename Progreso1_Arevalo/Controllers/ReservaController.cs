@@ -1,83 +1,132 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Progreso1_Arevalo.Data;
+using Progreso1_ArevaloLenin.Models;
 
 namespace Progreso1_Arevalo.Controllers
 {
     public class ReservaController : Controller
     {
-        // GET: ReservaController
-        public ActionResult Index()
+        private readonly ApplicationDbContext _context;
+
+        public ReservaController(ApplicationDbContext context)
         {
+            _context = context;
+        }
+
+        // GET: Reserva
+        public IActionResult Index()
+        {
+            var reservas = _context.Reservas.Include(r => r.Cliente).ToList();
+            return View(reservas);
+        }
+
+        // GET: Reserva/Details/5
+        public IActionResult Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var reserva = _context.Reservas
+                .Include(r => r.Cliente)
+                .FirstOrDefault(r => r.Id == id);
+
+            if (reserva == null) return NotFound();
+
+            return View(reserva);
+        }
+
+        // GET: Reserva/Create
+        public IActionResult Create()
+        {
+            ViewBag.Clientes = _context.Clientes.ToList(); // Para seleccionar el cliente
             return View();
         }
 
-        // GET: ReservaController/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
-
-        // GET: ReservaController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: ReservaController/Create
+        // POST: Reserva/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public IActionResult Create(Reserva reserva)
         {
-            try
+            if (ModelState.IsValid)
             {
+                reserva.FechaReserva = DateTime.Now;
+                _context.Reservas.Add(reserva);
+
+                // Obtener cliente y su plan de recompensa
+                var cliente = _context.Clientes
+                    .Include(c => c.PlanRecompensa)
+                    .FirstOrDefault(c => c.Id == reserva.ClienteId);
+
+                if (cliente != null && cliente.PlanRecompensa != null)
+                {
+                    // Sumar puntos
+                    cliente.PlanRecompensa.PuntosAcumulados += 100;
+
+                    // Tipo de recompensa: false = Silver, true = Gold
+                    cliente.PlanRecompensa.TipoRecompensa = cliente.PlanRecompensa.PuntosAcumulados >= 500;
+                }
+
+                _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
-            catch
-            {
-                return View();
-            }
+
+            ViewBag.Clientes = _context.Clientes.ToList();
+            return View(reserva);
         }
 
-        // GET: ReservaController/Edit/5
-        public ActionResult Edit(int id)
+        // GET: Reserva/Edit/5
+        public IActionResult Edit(int? id)
         {
-            return View();
+            if (id == null) return NotFound();
+
+            var reserva = _context.Reservas.Find(id);
+            if (reserva == null) return NotFound();
+
+            ViewBag.Clientes = _context.Clientes.ToList();
+            return View(reserva);
         }
 
-        // POST: ReservaController/Edit/5
+        // POST: Reserva/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public IActionResult Edit(int id, Reserva reserva)
         {
-            try
+            if (id != reserva.Id) return NotFound();
+
+            if (ModelState.IsValid)
             {
+                _context.Update(reserva);
+                _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
-            catch
-            {
-                return View();
-            }
+
+            ViewBag.Clientes = _context.Clientes.ToList();
+            return View(reserva);
         }
 
-        // GET: ReservaController/Delete/5
-        public ActionResult Delete(int id)
+        // GET: Reserva/Delete/5
+        public IActionResult Delete(int? id)
         {
-            return View();
+            if (id == null) return NotFound();
+
+            var reserva = _context.Reservas
+                .Include(r => r.Cliente)
+                .FirstOrDefault(r => r.Id == id);
+
+            if (reserva == null) return NotFound();
+
+            return View(reserva);
         }
 
-        // POST: ReservaController/Delete/5
-        [HttpPost]
+        // POST: Reserva/Delete/5
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public IActionResult DeleteConfirmed(int id)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            var reserva = _context.Reservas.Find(id);
+            _context.Reservas.Remove(reserva);
+            _context.SaveChanges();
+            return RedirectToAction(nameof(Index));
         }
     }
 }

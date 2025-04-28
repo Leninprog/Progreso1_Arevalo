@@ -8,6 +8,7 @@
         public DateTime FechaFin { get; set; }
         public string InformacionCliente { get; set; }
         public float ValorPagado { get; set; }
-
+        public int ClienteId { get; set; }
+        public Cliente Cliente { get; set; }
     }
 }
